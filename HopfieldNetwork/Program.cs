@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
-using System.Windows.Forms;
+using System.Drawing.Imaging;
+using System.Linq;
 
 namespace HopfieldNetwork
 {
@@ -61,28 +62,37 @@ namespace HopfieldNetwork
                     searchImage[(x * bm.Width) + y] = (pixel.R > 0) ? (-1) : (1);
                 }
             }
-            
+
             int[] oldSearchImage = null;
-            while (!searchImage.Equals(oldSearchImage))
+            do
             {
-                oldSearchImage = (int[])searchImage.Clone();
+                oldSearchImage = (int[]) searchImage.Clone();
                 for (int i = 0; i < numOfNeur; i++)
                 {
-                    float temp_neur_value = 0;
+                    float tempNeurValue = 0;
                     for (int j = 0; j < numOfNeur; j++)
-                        temp_neur_value += searchImage[j] * weightsMatrix[i, j];
-                    searchImage[i] = temp_neur_value > 0 ? 1 : -1;
+                        tempNeurValue += searchImage[j] * weightsMatrix[i, j];
+                    searchImage[i] = tempNeurValue < 0 ? -1 : 1;
                 }
-            }
+            } while (!searchImage.SequenceEqual(oldSearchImage));
             
             return searchImage;
-        }
+        } 
     }
 
     internal class Program
     {
         public static void BitmapToImage(int[] bitmap, string savePath){
+            Bitmap bm = new Bitmap((int)Math.Sqrt(bitmap.Length), (int)Math.Sqrt(bitmap.Length));
+            for (int x = 0; x < bm.Height; x++)
+            {
+                for (int y = 0; y < bm.Width; y++)
+                {
+                    bm.SetPixel(x, y, bitmap[(x * bm.Width) + y] > 0 ? Color.Black: Color.White);
+                }
+            }
             
+            bm.Save(savePath, ImageFormat.Png);
         }
         public static void Main(string[] args)
         {
@@ -97,7 +107,9 @@ namespace HopfieldNetwork
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\7.png");
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\8.png");
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\9.png");
-            BitmapToImage(NNH.SearchImage(@"***type path***"), @"***type path***");
+            int[] resVector = NNH.SearchImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\searchImages\5-template.png");
+            BitmapToImage(resVector, @"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\searchResult\5-result.png");
+            Console.ReadKey();
         }
     }
 }
