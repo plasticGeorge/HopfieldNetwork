@@ -10,13 +10,13 @@ namespace HopfieldNetwork
         private int numOfNeur;
         private int maxImages;
         private int imagesCount;
-        private float[,] weightsMatrix;
+        private int[,] weightsMatrix;
 
         public Network(int imgRes)
         {
             numOfNeur = (int)Math.Pow(imgRes, 2);
             maxImages = (int)(numOfNeur / (2 * Math.Log(numOfNeur, 2)));
-            weightsMatrix = new float[numOfNeur, numOfNeur];
+            weightsMatrix = new int[numOfNeur, numOfNeur];
         }
 
         public void SaveNewImage(string imagePath)
@@ -37,13 +37,24 @@ namespace HopfieldNetwork
                 }
             }
 
+            // for (int i = 0; i < Math.Sqrt(newImage.Length); i++)
+            // {
+            //     for (int j = 0; j < Math.Sqrt(newImage.Length); j++)
+            //     {
+            //         Console.Write(newImage[(int)(Math.Sqrt(newImage.Length) * i) +j] + " ");
+            //     }
+            //     Console.WriteLine();
+            // }
+            // Console.WriteLine();
+
             for (int i = 0; i < newImage.Length; i++)
             {
                 for (int j = 0; j < newImage.Length; j++)
                 {
                     if(i == j)
-                        continue;
-                    weightsMatrix[i, j] += (float)(newImage[j] * newImage[i])/newImage.Length;
+                        weightsMatrix[i, j] = 0;
+                    else
+                        weightsMatrix[i, j] += newImage[i] * newImage[j];
                 }
             }
 
@@ -62,22 +73,48 @@ namespace HopfieldNetwork
                     searchImage[(x * bm.Width) + y] = (pixel.R > 0) ? (-1) : (1);
                 }
             }
+            
+            // for (int i = 0; i < Math.Sqrt(searchImage.Length); i++)
+            // {
+            //     for (int j = 0; j < Math.Sqrt(searchImage.Length); j++)
+            //     {
+            //         Console.Write(searchImage[(int)(Math.Sqrt(searchImage.Length) * i) +j] + " ");
+            //     }
+            //     Console.WriteLine();
+            // }
+            // Console.WriteLine();
 
             int[] oldSearchImage = null;
+            //for (int k = 0; k < 100; k++)
             do
             {
                 oldSearchImage = (int[]) searchImage.Clone();
                 for (int i = 0; i < numOfNeur; i++)
                 {
-                    float tempNeurValue = 0;
+                    int tempNeurState = searchImage[i];
                     for (int j = 0; j < numOfNeur; j++)
-                        tempNeurValue += searchImage[j] * weightsMatrix[i, j];
-                    searchImage[i] = tempNeurValue < 0 ? -1 : 1;
+                        tempNeurState += weightsMatrix[i, j] * searchImage[j];
+                    if (tempNeurState < 0)
+                        searchImage[i] = -1;
+                    else if(tempNeurState > 0)
+                        searchImage[i] = 1;
                 }
-            } while (!searchImage.SequenceEqual(oldSearchImage));
-            
+            } while (!isEqual(oldSearchImage, searchImage));
+
             return searchImage;
-        } 
+        }
+
+        private bool isEqual(int[] arr1, int[] arr2)
+        {
+            if (arr1.Length != arr2.Length)
+                return false;
+            
+            for (int i = 0; i < arr1.Length; i++)
+                if (arr1[i] != arr2[i])
+                    return false;
+
+            return true;
+        }
     }
 
     internal class Program
@@ -96,7 +133,7 @@ namespace HopfieldNetwork
         }
         public static void Main(string[] args)
         {
-            Network NNH = new Network(16);
+            Network NNH = new Network(32);
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\0.png");
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\1.png");
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\2.png");
@@ -107,8 +144,9 @@ namespace HopfieldNetwork
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\7.png");
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\8.png");
             NNH.SaveNewImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\images\9.png");
-            int[] resVector = NNH.SearchImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\searchImages\5-template.png");
-            BitmapToImage(resVector, @"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\searchResult\5-result.png");
+            int[] resVector = NNH.SearchImage(@"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\searchImages\s.png");
+            BitmapToImage(resVector, @"C:\Users\floppy\RiderProjects\HopfieldNetwork\HopfieldNetwork\searchResult\r.png");
+            
             Console.ReadKey();
         }
     }
