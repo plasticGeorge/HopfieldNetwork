@@ -1,5 +1,5 @@
 # HopfieldNetwork
-the algorithm Hopfield Neuron Network which doesn't work so well, but it's just the beginning, right?)
+The algorithm Hopfield Neuron Network which doesn't work so well, but it's just the beginning, right?)
 
 The I / o system is not implemented in this code, because it's training project.
 
